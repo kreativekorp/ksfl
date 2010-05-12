@@ -3,9 +3,9 @@
 
 = Installation on Windows =
 
-# Download {{{KSFL-1.0.jar}}}
-# Move {{{KSFL-1.0.jar}}} to {{{C:\Program Files\Kreative\KSFL\KSFL.jar}}}
-# Create the file {{{C:\Program Files\Kreative\KSFL\KSFL.bat}}} with the following contents:
+ # Download {{{KSFL-1.0.jar}}}
+ # Move {{{KSFL-1.0.jar}}} to {{{C:\Program Files\Kreative\KSFL\KSFL.jar}}}
+ # Create the file {{{C:\Program Files\Kreative\KSFL\KSFL.bat}}} with the following contents:
 
 {{{
 @ECHO OFF
@@ -14,20 +14,20 @@ java -jar KSFL.jar %1 %2 %3 %4 %5 %6 %7 %8 %9
 
 = Installation on Other Systems =
 
-# Download {{{KSFL-1.0.jar}}}
-# Move {{{KSFL-1.0.jar}}} to {{{/usr/lib/KSFL.jar}}}
-# Create the file {{{/usr/bin/ksfl}}} with the following contents:
+ # Download {{{KSFL-1.0.jar}}}
+ # Move {{{KSFL-1.0.jar}}} to {{{/usr/lib/KSFL.jar}}}
+ # Create the file {{{/usr/bin/ksfl}}} with the following contents:
 
 {{{
 #!/bin/sh
 java -jar /usr/lib/KSFL.jar "$@"
 }}}
 
-# {{{chmod +x /usr/bin/ksfl}}}
+ # {{{chmod +x /usr/bin/ksfl}}}
 
 = Installation from Source =
 
-# {{{svn co http://ksfl.googlecode.com/svn/trunk/main/java/KSFL/ KSFL}}}
-# {{{cd KSFL}}}
-# {{{make}}}
-# {{{sudo make install}}}
+ # {{{svn co http://ksfl.googlecode.com/svn/trunk/main/java/KSFL/ KSFL}}}
+ # {{{cd KSFL}}}
+ # {{{make}}}
+ # {{{sudo make install}}}
