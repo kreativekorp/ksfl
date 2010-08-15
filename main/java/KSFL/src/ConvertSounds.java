@@ -17,12 +17,12 @@ public class ConvertSounds {
 				short[] ids = rp.getIDs(KSFLConstants.snd);
 				for (short id : ids) {
 					SoundResource rsnd = rp.get(KSFLConstants.snd, id).shallowRecast(SoundResource.class);
-					System.out.print("snd #"+id+((rsnd.name == null) ? "" : (" "+rsnd.name))+"...");
+					System.out.print("snd #"+id+((rsnd.name == null || rsnd.name.trim().length() == 0) ? "" : (" "+rsnd.name.trim()))+"...");
 					byte[] stuff = fmt.convert(rsnd);
 					if (stuff == null) {
 						System.out.println(" CANNOT CONVERT");
 					} else {
-						File outf = new File(bf.getParentFile(), bf.getName()+" #"+id+((rsnd.name == null) ? "" : (" "+rsnd.name))+"."+fmt.name().toLowerCase());
+						File outf = new File(bf.getParentFile(), bf.getName()+" #"+id+((rsnd.name == null || rsnd.name.trim().length() == 0) ? "" : (" "+rsnd.name.trim().replace('/', ':')))+"."+fmt.name().toLowerCase());
 						try {
 							FileOutputStream out = new FileOutputStream(outf);
 							out.write(stuff);
