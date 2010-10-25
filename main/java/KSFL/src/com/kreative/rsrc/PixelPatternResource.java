@@ -165,14 +165,14 @@ public class PixelPatternResource extends MacResource {
 	private static class PixelPattern {
 		public static final int DITHER_PAT = 2;
 		public static final int PIXEL_PAT = 1;
-		public static final int BW_PAT = 0;
+		//public static final int BW_PAT = 0;
 		
 		public int patType;
 		public int pmHandle;
 		public int pdHandle;
-		public int pxHandle;
-		public int pxValid;
-		public int pxMap;
+		//public int pxHandle;
+		//public int pxValid;
+		//public int pxMap;
 		public long pat1Data;
 		public RGBColor rgb;
 		public PixMap pixMap;
@@ -186,9 +186,9 @@ public class PixelPatternResource extends MacResource {
 			pp.patType = in.readShort();
 			pp.pmHandle = in.readInt();
 			pp.pdHandle = in.readInt();
-			pp.pxHandle = in.readInt();
-			pp.pxValid = in.readShort();
-			pp.pxMap = in.readInt();
+			/* pp.pxHandle = */ in.readInt();
+			/* pp.pxValid = */ in.readShort();
+			/* pp.pxMap = */ in.readInt();
 			pp.pat1Data = in.readLong();
 			switch (pp.patType) {
 			case DITHER_PAT:
