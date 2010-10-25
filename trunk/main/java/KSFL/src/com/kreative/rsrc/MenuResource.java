@@ -377,9 +377,8 @@ public class MenuResource extends MacResource {
 			menuItemName = menuItemName.replace(UNICODE_CLOSED_APPLE, MACROMAN_CLOSED_APPLE);
 		}
 		
-		@SuppressWarnings("unchecked")
 		public Map<TextAttribute,?> getAttributes(Font f) {
-			Map m = new HashMap();
+			Map<TextAttribute,Object> m = new HashMap<TextAttribute,Object>();
 			m.putAll(f.getAttributes());
 			if ((style & STYLE_BOLD) != 0) {
 				m.put(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
