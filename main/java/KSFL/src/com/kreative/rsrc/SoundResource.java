@@ -450,7 +450,7 @@ public class SoundResource extends MacResource {
 			short compressionID = KSFLUtilities.getShort(data, o+56);
 			short sampleSize = KSFLUtilities.getShort(data, o+62);
 			int sampleBytes = (sampleSize + 7) / 8;
-			byte[] newdata = KSFLUtilities.copy(data, o+22, numFrames * sampleBytes);
+			byte[] newdata = KSFLUtilities.copy(data, o+22, numBytes * numFrames * sampleBytes);
 			switch (compressionID) {
 			case COMPID_NONE:
 				// nothin' doin'
@@ -491,11 +491,11 @@ public class SoundResource extends MacResource {
 				// FORMAT chunk, 24 bytes total
 				out2.writeInt(FMT );
 				out2.writeInt(0x10000000); // length of following data, little-endian
-				out2.writeShort(0x0100);
+				out2.writeShort(0x0100); // codec; 1 = PCM
 				out2.writeShort(Short.reverseBytes((short)numBytes)); // number of channels
 				out2.writeInt(Integer.reverseBytes(sampleRate >>> 16)); // sample rate in Hz
-				out2.writeInt(Integer.reverseBytes((sampleRate >>> 16) * (sampleSize >>> 3))); // bytes per second
-				out2.writeShort(Short.reverseBytes((short)(sampleSize >>> 3))); // bytes per sample
+				out2.writeInt(Integer.reverseBytes(numBytes * (sampleRate >>> 16) * sampleBytes)); // bytes per second
+				out2.writeShort(Short.reverseBytes((short)(numBytes * sampleBytes))); // bytes per sample
 				out2.writeShort(Short.reverseBytes((short)sampleSize)); // bits per sample
 				// DATA chunk, (8 + numBytes + padding) bytes total
 				out2.writeInt(DATA);
@@ -533,7 +533,7 @@ public class SoundResource extends MacResource {
 			int numFrames = KSFLUtilities.getInt(data, o+22);
 			short sampleSize = KSFLUtilities.getShort(data, o+48);
 			int sampleBytes = (sampleSize + 7) / 8;
-			byte[] newdata = KSFLUtilities.copy(data, o+64, numFrames * sampleBytes);
+			byte[] newdata = KSFLUtilities.copy(data, o+64, numBytes * numFrames * sampleBytes);
 			int flength = newdata.length;
 			int fpadding = 0; while (((flength+fpadding)&3)!=0) fpadding++;
 			try {
@@ -546,11 +546,11 @@ public class SoundResource extends MacResource {
 				// FORMAT chunk, 24 bytes total
 				out2.writeInt(FMT );
 				out2.writeInt(0x10000000); // length of following data, little-endian
-				out2.writeShort(0x0100);
+				out2.writeShort(0x0100); // codec; 1 = PCM
 				out2.writeShort(Short.reverseBytes((short)numBytes)); // number of channels
 				out2.writeInt(Integer.reverseBytes(sampleRate >>> 16)); // sample rate in Hz
-				out2.writeInt(Integer.reverseBytes((sampleRate >>> 16) * (sampleSize >>> 3))); // bytes per second
-				out2.writeShort(Short.reverseBytes((short)(sampleSize >>> 3))); // bytes per sample
+				out2.writeInt(Integer.reverseBytes(numBytes * (sampleRate >>> 16) * sampleBytes)); // bytes per second
+				out2.writeShort(Short.reverseBytes((short)(numBytes * sampleBytes))); // bytes per sample
 				out2.writeShort(Short.reverseBytes((short)sampleSize)); // bits per sample
 				// DATA chunk, (8 + numBytes + padding) bytes total
 				out2.writeInt(DATA);
@@ -595,7 +595,7 @@ public class SoundResource extends MacResource {
 				// FORMAT chunk, 24 bytes total
 				out2.writeInt(FMT );
 				out2.writeInt(0x10000000); // length of following data, little-endian
-				out2.writeShort(0x0100);
+				out2.writeShort(0x0100); // codec; 1 = PCM
 				out2.writeShort(0x0100); // number of channels; 1 = mono
 				out2.writeInt(Integer.reverseBytes(sampleRate >>> 16)); // sample rate in Hz
 				out2.writeInt(Integer.reverseBytes(sampleRate >>> 16)); // bytes per second
@@ -652,7 +652,7 @@ public class SoundResource extends MacResource {
 			short compressionID = KSFLUtilities.getShort(data, o+56);
 			short sampleSize = KSFLUtilities.getShort(data, o+62);
 			int sampleBytes = (sampleSize + 7) / 8;
-			int flength = numFrames * sampleBytes;
+			int flength = numBytes * numFrames * sampleBytes;
 			int fpadding = 0; while (((flength+fpadding)&1)!=0) fpadding++;
 			try {
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -718,7 +718,7 @@ public class SoundResource extends MacResource {
 			long aiffSampleRateMantissa = KSFLUtilities.getLong(data, o+28);
 			short sampleSize = KSFLUtilities.getShort(data, o+48);
 			int sampleBytes = (sampleSize + 7) / 8;
-			int flength = numFrames * sampleBytes;
+			int flength = numBytes * numFrames * sampleBytes;
 			int fpadding = 0; while (((flength+fpadding)&1)!=0) fpadding++;
 			try {
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
