@@ -29,6 +29,7 @@ package com.kreative.rsrc;
 
 import java.io.*;
 import com.kreative.ksfl.*;
+import com.kreative.rsrc.misc.MACEDecoder;
 
 /**
  * The <code>SoundResource</code> class represents a Mac OS sound resource.
@@ -384,6 +385,46 @@ public class SoundResource extends MacResource {
 	}
 	
 	/**
+	 * Returns the name of the codec used to compress the sound data.
+	 * If the codec is unrecognized, returns null.
+	 * @return the name of the codec used to compress the sound data.
+	 */
+	public String getCodecName() {
+		if (getFormat() < 1 || getFormat() > 2) return null;
+		for (int i = 0; i < getCommandCount(); i++) {
+			int cmd = getCommand(i) & ~DATAOFFSETFLAG;
+			if (!(cmd == NULLCMD || cmd == SOUNDCMD || cmd == BUFFERCMD)) return null;
+		}
+		int o = getSoundDataOffset();
+		int encoding = data[o+20];
+		if (encoding == -2) {
+			int format = KSFLUtilities.getInt(data, o+40);
+			short compressionID = KSFLUtilities.getShort(data, o+56);
+			switch (compressionID) {
+			case COMPID_NONE: return new String(COMPNAME_NONE).trim();
+			case COMPID_ACE_2TO1: return new String(COMPNAME_ACE_2TO1).trim();
+			case COMPID_ACE_8TO3: return new String(COMPNAME_ACE_8TO3).trim();
+			case COMPID_MACE_3TO1: return new String(COMPNAME_MACE_3TO1).trim();
+			case COMPID_MACE_6TO1: return new String(COMPNAME_MACE_6TO1).trim();
+			case COMPID_USE_FORMAT:
+				switch (format) {
+				case FORMAT_NONE: return new String(COMPNAME_NONE).trim();
+				case FORMAT_ACE_2TO1: return new String(COMPNAME_ACE_2TO1).trim();
+				case FORMAT_ACE_8TO3: return new String(COMPNAME_ACE_8TO3).trim();
+				case FORMAT_MACE_3TO1: return new String(COMPNAME_MACE_3TO1).trim();
+				case FORMAT_MACE_6TO1: return new String(COMPNAME_MACE_6TO1).trim();
+				default: return null;
+				}
+			default: return null;
+			}
+		} else if (encoding == -1 || encoding == 0) {
+			return new String(COMPNAME_NONE).trim();
+		} else {
+			return null;
+		}
+	}
+	
+	/**
 	 * Converts this sound resource to the WAV format, if possible, and returns the WAV data.
 	 * If the sound cannot be converted, returns null.
 	 * @return WAV data.
@@ -402,7 +443,147 @@ public class SoundResource extends MacResource {
 		int loopEnd = KSFLUtilities.getInt(data, o+16);
 		int encoding = data[o+20];
 		int baseFrequency = data[o+21];
-		if (encoding == 0) {
+		if (encoding == -2) {
+			// compressed
+			int numFrames = KSFLUtilities.getInt(data, o+22);
+			int format = KSFLUtilities.getInt(data, o+40);
+			short compressionID = KSFLUtilities.getShort(data, o+56);
+			short sampleSize = KSFLUtilities.getShort(data, o+62);
+			int sampleBytes = (sampleSize + 7) / 8;
+			byte[] newdata = KSFLUtilities.copy(data, o+22, numFrames * sampleBytes);
+			switch (compressionID) {
+			case COMPID_NONE:
+				// nothin' doin'
+				break;
+			case COMPID_MACE_3TO1:
+				newdata = MACEDecoder.decompressMACE3(newdata, numBytes);
+				break;
+			case COMPID_MACE_6TO1:
+				newdata = MACEDecoder.decompressMACE6(newdata, numBytes);
+				break;
+			case COMPID_USE_FORMAT:
+				switch (format) {
+				case FORMAT_NONE:
+					// nothin' doin'
+					break;
+				case FORMAT_MACE_3TO1:
+					newdata = MACEDecoder.decompressMACE3(newdata, numBytes);
+					break;
+				case FORMAT_MACE_6TO1:
+					newdata = MACEDecoder.decompressMACE6(newdata, numBytes);
+					break;
+				default:
+					return null;
+				}
+				break;
+			default:
+				return null;
+			}
+			int flength = newdata.length;
+			int fpadding = 0; while (((flength+fpadding)&3)!=0) fpadding++;
+			try {
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				DataOutputStream out2 = new DataOutputStream(out);
+				// RIFF header
+				out2.writeInt(RIFF);
+				out2.writeInt(Integer.reverseBytes(56 + flength + fpadding)); // length of following data
+				out2.writeInt(WAVE); // WAVE format
+				// FORMAT chunk, 24 bytes total
+				out2.writeInt(FMT );
+				out2.writeInt(0x10000000); // length of following data, little-endian
+				out2.writeShort(0x0100);
+				out2.writeShort(Short.reverseBytes((short)numBytes)); // number of channels
+				out2.writeInt(Integer.reverseBytes(sampleRate >>> 16)); // sample rate in Hz
+				out2.writeInt(Integer.reverseBytes((sampleRate >>> 16) * (sampleSize >>> 3))); // bytes per second
+				out2.writeShort(Short.reverseBytes((short)(sampleSize >>> 3))); // bytes per sample
+				out2.writeShort(Short.reverseBytes((short)sampleSize)); // bits per sample
+				// DATA chunk, (8 + numBytes + padding) bytes total
+				out2.writeInt(DATA);
+				out2.writeInt(Integer.reverseBytes(flength + fpadding)); // number of bytes to follow
+				if (sampleBytes == 1) {
+					for (int i = 0; i < newdata.length; i++) newdata[i] ^= 0x80;
+					out2.write(newdata);
+					for (int i = 0; i < fpadding; i++) out2.writeByte(0x80);
+				} else {
+					for (int i = 0; i < newdata.length; i += sampleBytes) {
+						for (int j = 0, k = sampleBytes-1; j < sampleBytes/2; j++, k--) {
+							byte t = newdata[i+j];
+							newdata[i+j] = newdata[i+k];
+							newdata[i+k] = t;
+						}
+					}
+					out2.write(newdata);
+					for (int i = 0; i < fpadding; i++) out2.writeByte(0);
+				}
+				// CYNTH chunk, 20 bytes total
+				out2.writeInt(CYNH);
+				out2.writeInt(0x0C000000); // length of following data, little-endian
+				out2.writeInt(Integer.reverseBytes(loopStart)); // loop start, little-endian
+				out2.writeInt(Integer.reverseBytes(loopEnd)); // loop end, little-endian
+				out2.writeInt(Integer.reverseBytes(baseFrequency)); // base frequency, little-endian
+				// done
+				out2.close();
+				out.close();
+				return out.toByteArray();
+			} catch (IOException ioe) {
+				return null;
+			}
+		} else if (encoding == -1) {
+			// extended
+			int numFrames = KSFLUtilities.getInt(data, o+22);
+			short sampleSize = KSFLUtilities.getShort(data, o+48);
+			int sampleBytes = (sampleSize + 7) / 8;
+			byte[] newdata = KSFLUtilities.copy(data, o+64, numFrames * sampleBytes);
+			int flength = newdata.length;
+			int fpadding = 0; while (((flength+fpadding)&3)!=0) fpadding++;
+			try {
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				DataOutputStream out2 = new DataOutputStream(out);
+				// RIFF header
+				out2.writeInt(RIFF);
+				out2.writeInt(Integer.reverseBytes(56 + flength + fpadding)); // length of following data
+				out2.writeInt(WAVE); // WAVE format
+				// FORMAT chunk, 24 bytes total
+				out2.writeInt(FMT );
+				out2.writeInt(0x10000000); // length of following data, little-endian
+				out2.writeShort(0x0100);
+				out2.writeShort(Short.reverseBytes((short)numBytes)); // number of channels
+				out2.writeInt(Integer.reverseBytes(sampleRate >>> 16)); // sample rate in Hz
+				out2.writeInt(Integer.reverseBytes((sampleRate >>> 16) * (sampleSize >>> 3))); // bytes per second
+				out2.writeShort(Short.reverseBytes((short)(sampleSize >>> 3))); // bytes per sample
+				out2.writeShort(Short.reverseBytes((short)sampleSize)); // bits per sample
+				// DATA chunk, (8 + numBytes + padding) bytes total
+				out2.writeInt(DATA);
+				out2.writeInt(Integer.reverseBytes(flength + fpadding)); // number of bytes to follow
+				if (sampleBytes == 1) {
+					for (int i = 0; i < newdata.length; i++) newdata[i] ^= 0x80;
+					out2.write(newdata);
+					for (int i = 0; i < fpadding; i++) out2.writeByte(0x80);
+				} else {
+					for (int i = 0; i < newdata.length; i += sampleBytes) {
+						for (int j = 0, k = sampleBytes-1; j < sampleBytes/2; j++, k--) {
+							byte t = newdata[i+j];
+							newdata[i+j] = newdata[i+k];
+							newdata[i+k] = t;
+						}
+					}
+					out2.write(newdata);
+					for (int i = 0; i < fpadding; i++) out2.writeByte(0);
+				}
+				// CYNTH chunk, 20 bytes total
+				out2.writeInt(CYNH);
+				out2.writeInt(0x0C000000); // length of following data, little-endian
+				out2.writeInt(Integer.reverseBytes(loopStart)); // loop start, little-endian
+				out2.writeInt(Integer.reverseBytes(loopEnd)); // loop end, little-endian
+				out2.writeInt(Integer.reverseBytes(baseFrequency)); // base frequency, little-endian
+				// done
+				out2.close();
+				out.close();
+				return out.toByteArray();
+			} catch (IOException ioe) {
+				return null;
+			}
+		} else if (encoding == 0) {
 			// uncompressed
 			try {
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -422,7 +603,7 @@ public class SoundResource extends MacResource {
 				out2.writeShort(0x0800); // bits per sample; 8 = 8-bit mono
 				// DATA chunk, (8 + numBytes + padding) bytes total
 				out2.writeInt(DATA);
-				out2.writeInt(Integer.reverseBytes(numBytes+padding)); // number of bytes to follow
+				out2.writeInt(Integer.reverseBytes(numBytes + padding)); // number of bytes to follow
 				out2.write(data, o+22, numBytes);
 				for (int i = 0; i < padding; i++) out2.writeByte(0x80);
 				// CYNTH chunk, 20 bytes total
@@ -465,18 +646,20 @@ public class SoundResource extends MacResource {
 		if (encoding == -2) {
 			// compressed
 			int numFrames = KSFLUtilities.getInt(data, o+22);
-			int fpadding = 0; while (((numFrames+fpadding)&1)!=0) fpadding++;
 			short aiffSampleRateExponent = KSFLUtilities.getShort(data, o+26);
 			long aiffSampleRateMantissa = KSFLUtilities.getLong(data, o+28);
 			int format = KSFLUtilities.getInt(data, o+40);
 			short compressionID = KSFLUtilities.getShort(data, o+56);
 			short sampleSize = KSFLUtilities.getShort(data, o+62);
+			int sampleBytes = (sampleSize + 7) / 8;
+			int flength = numFrames * sampleBytes;
+			int fpadding = 0; while (((flength+fpadding)&1)!=0) fpadding++;
 			try {
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				DataOutputStream out2 = new DataOutputStream(out);
 				// form chunk
 				out2.writeInt(FORM);
-				out2.writeInt(98 + numFrames + fpadding);
+				out2.writeInt(98 + flength + fpadding);
 				out2.writeInt(AIFC);
 				// format version chunk
 				out2.writeInt(FVER);
@@ -516,10 +699,60 @@ public class SoundResource extends MacResource {
 				out2.writeInt(baseFrequency);
 				// sound data chunk
 				out2.writeInt(SSND);
-				out2.writeInt(8 + numFrames);
+				out2.writeInt(8 + flength);
 				out2.writeInt(0); // offset
 				out2.writeInt(0); // block size
-				out2.write(data, o+64, numFrames);
+				out2.write(data, o+64, flength);
+				for (int i = 0; i < fpadding; i++) out2.writeByte(0);
+				// done
+				out2.close();
+				out.close();
+				return out.toByteArray();
+			} catch (IOException ioe) {
+				return null;
+			}
+		} else if (encoding == -1) {
+			// extended
+			int numFrames = KSFLUtilities.getInt(data, o+22);
+			short aiffSampleRateExponent = KSFLUtilities.getShort(data, o+26);
+			long aiffSampleRateMantissa = KSFLUtilities.getLong(data, o+28);
+			short sampleSize = KSFLUtilities.getShort(data, o+48);
+			int sampleBytes = (sampleSize + 7) / 8;
+			int flength = numFrames * sampleBytes;
+			int fpadding = 0; while (((flength+fpadding)&1)!=0) fpadding++;
+			try {
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				DataOutputStream out2 = new DataOutputStream(out);
+				// form chunk
+				out2.writeInt(FORM);
+				out2.writeInt(98 + flength + fpadding);
+				out2.writeInt(AIFC);
+				// format version chunk
+				out2.writeInt(FVER);
+				out2.writeInt(4);
+				out2.writeInt(0xA2805140);
+				// common chunk
+				out2.writeInt(COMM);
+				out2.writeInt(38);
+				out2.writeShort(numBytes); // number of channels
+				out2.writeInt(numFrames); // number of frames
+				out2.writeShort(sampleSize); // bits per sample
+				out2.writeShort(aiffSampleRateExponent);
+				out2.writeLong(aiffSampleRateMantissa);
+				out2.writeInt(FORMAT_NONE);
+				out2.write(COMPNAME_NONE);
+				// cynth chunk
+				out2.writeInt(CYNH);
+				out2.writeInt(12);
+				out2.writeInt(loopStart);
+				out2.writeInt(loopEnd);
+				out2.writeInt(baseFrequency);
+				// sound data chunk
+				out2.writeInt(SSND);
+				out2.writeInt(8 + flength);
+				out2.writeInt(0); // offset
+				out2.writeInt(0); // block size
+				out2.write(data, o+64, flength);
 				for (int i = 0; i < fpadding; i++) out2.writeByte(0);
 				// done
 				out2.close();

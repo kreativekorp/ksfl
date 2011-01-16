@@ -18,7 +18,7 @@ public class PlaySounds {
 				short[] ids = rp.getIDs(KSFLConstants.snd);
 				for (short id : ids) {
 					SoundResource rsnd = rp.get(KSFLConstants.snd, id).shallowRecast(SoundResource.class);
-					System.out.print("snd #"+id+((rsnd.name == null || rsnd.name.trim().length() == 0) ? "" : (" "+rsnd.name.trim()))+"...");
+					System.out.print("snd #"+id+((rsnd.name == null || rsnd.name.trim().length() == 0) ? "" : (" "+rsnd.name.trim()))+" ("+rsnd.getCodecName()+")...");
 					byte[] stuff = fmt.convert(rsnd);
 					if (stuff == null) {
 						System.out.println(" CANNOT CONVERT");
