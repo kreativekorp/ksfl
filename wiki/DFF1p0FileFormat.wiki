@@ -1,0 +1,30 @@
+#summary This page describes the DFF 1.0 file format, an open file format for structured binary data.
+
+= Introduction =
+
+This page describes the DFF 1.0 file format, an open file format for structured binary data. The DFF 1.0 file format has been superseded by the [DFF3p0FileFormat DFF 3.0 file format].
+
+= DFF 1.0 File Format =
+
+The DFF 1.0 file format is endian-agnostic: the endianness of all fields is determined by the endianness of the magic number at the beginning of the file.
+
+DFF 1.0 is a very simple format, consisting only of a magic number followed by an array of resource records. No word alignment is used.
+
+|| *Type* || *Description* || *Notes* ||
+|| `int32` || `magic` || the magic number `0x25444646`; the four-character constant (fcc) `%DFF` ||
+|| `resource[]` || `resources` || an array of resource records ||
+|| `    int64` || `    type` || the resource type; an eight-character constant (ecc) ||
+|| `    int16` || `    id` || the resource id ||
+|| `    int16` || `    filler` || should be zero ||
+|| `    int32` || `    size` || length of resource data ||
+|| `    byte[]` || `    data` || resource data ||
+
+= Empty DFF 1.0 File =
+
+An empty DFF 1.0 file consists solely of the magic number.
+
+|| `0000:` || `25 44 46 46` ||
+
+Or the little-endian version:
+
+|| `0000:` || `46 46 44 25` ||
