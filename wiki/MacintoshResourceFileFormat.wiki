@@ -1,0 +1,98 @@
+#summary This page describes the format of resource files used by the Mac OS Resource Manager.
+
+= Introduction =
+
+This page describes the format of resource files used by the Mac OS Resource Manager. The Resource Manager was originally designed and implemented by Bruce Horn for use in the original Macintosh Operating System. It remains today as a feature unique to the Mac OS. Other operating systems have the concept of resources, but the Mac OS implementation remains unique.
+
+= Resource File Format =
+
+A Mac OS resource file (or the resource fork of any file on an HFS or HFS+ file system) starts with four 32-bit integers pointing to the location of and indicating the length of the _resource map_ section and the _resource data_ section.
+
+|| *Type* || *Description* || *Notes* ||
+|| `int32be` || `resourceDataOffset` || offset from start of file to start of resource data section ||
+|| `int32be` || `resourceMapOffset` || offset from start of file to start of resource map section ||
+|| `int32be` || `resourceDataSize` || length of resource data section ||
+|| `int32be` || `resourceMapSize` || length of resource map section ||
+
+The _resource data_ section usually starts at offset `0x0100` and consists of an array of resource data records, each of which contains the length and data of an individual resource. No word alignment is used.
+
+|| *Type* || *Description* || *Notes* ||
+|| `data[]` || `resourceData` || an array of resource data records ||
+|| `    int32be` || `    size` || length of data for this resource ||
+|| `    byte[]` || `    data` || data for this resource ||
+
+The _resource map_ section follows immediately after the resource data section and begins with a header containing a copy of the information found at the beginning of the file.
+
+|| *Type* || *Description* || *Notes* ||
+|| `int32be` || `resourceDataOffset` || offset from start of file to start of resource data section ||
+|| `int32be` || `resourceMapOffset` || offset from start of file to start of resource map section ||
+|| `int32be` || `resourceDataSize` || length of resource data section ||
+|| `int32be` || `resourceMapSize` || length of resource map section ||
+|| `int32be` || `nextResourceMap` || used by the Resource Manager for internal bookkeeping; should be zero ||
+|| `int16be` || `fileRef` || used by the Resource Manager for internal bookkeeping; should be zero ||
+|| `int16be` || `attributes` || Bit 7 (`0x0080`) indicates that the resource map is read-only. Bit 6 (`0x0040`; needs compression) and bit 5 (`0x0020`; changed) are used by the Resource Manager for internal bookkeeping and should be zero. Other bits are reserved and should be zero. ||
+|| `int16be` || `typeListOffset` || offset from start of resource map to start of type list ||
+|| `int16be` || `nameListOffset` || offset from start of resource map to start of name list ||
+
+The use of 16-bit signed integers imposes a 32K limitation on the size of the resource map. This limitation is reached at 2,727 resources or fewer if the resources are of different types or have names.
+
+The _type list_ follows the header and contains an array of resource type records.
+
+|| *Type* || *Description* || *Notes* ||
+|| `int16be` || `typeCount` || The number of types, minus one. If there are no resources, this is `0xFFFF`. If there is one resource type, this is `0x0000`. If there are two resource types, this is `0x0001`. And so on. ||
+|| `type[]` || `types` || an array of type records ||
+|| `    int32be` || `    type` || the resource type; a four-character constant (fcc) ||
+|| `    int16be` || `    resourceCount` || The number of resources of this type, minus one. If there is one resource of this type, this is `0x0000`. If there are two resources of this type, this is `0x0001`. And so on. ||
+|| `    int16be` || `    resourceListOffset` || offset from start of type list to start of resource list ||
+
+For each resource type in the type list, a _resource list_ follows that consists of an array of resource records.
+
+|| *Type* || *Description* || *Notes* ||
+|| `resource[]` || `resourceList` || an array of resource records ||
+|| `    int16be` || `    id` || the resource id ||
+|| `    int16be` || `    nameOffset` || offset from start of name list to resource name; if the resource has no name, this is `0xFFFF` ||
+|| `    int8be` || `    attributes` || Bit 6 (`0x40`; system) indicates that this resource should be loaded in the system heap instead of the application heap. Bit 5 (`0x20`; purgeable) indicates that this resource may be paged out of memory. Bit 4 (`0x10`; locked) indicates that this resource may not be moved in memory. Bit 3 (`0x08`; protected) indicates that this resource is read-only. Bit 2 (`0x04`; preload) indicates that this resource should be loaded as soon as the file is opened. Bit 0 (`0x01`; compressed) indicates that the resource data is compressed. Bit 1 (`0x02`; changed) is used by the Resource Manager for internal bookkeeping and should be zero. Bit 7 (`0x80`) is reserved and should be zero. ||
+|| `    int24be` || `    dataOffset` || offset from start of resource data section to resource data ||
+|| `    int32be` || `    resourcePtr` || used by the Resource Manager for internal bookkeeping; should be zero ||
+
+Finally, at the end of the file comes the _name list_ which consists of an array of Pascal strings encoded in [http://www.kreativekorp.com/charset/encoding.php?file=macroman.kte MacRoman]. No word alignment is used.
+
+|| *Type* || *Description* || *Notes* ||
+|| `name[]` || `names` || an array of resource names ||
+|| `    int8be` || `    length` || length of resource name ||
+|| `    byte[]` || `    name` || resource name in [http://www.kreativekorp.com/charset/encoding.php?file=macroman.kte MacRoman] encoding ||
+
+= Compressed Resources =
+
+The data for a compressed resource, indicated by bit 0 (`0x01`) set in the resource's `attributes` field, follows a standard format, described below.
+
+|| *Type* || *Description* || *Notes* ||
+|| `int32be` || `compressedRsrcTag` || the magic number `0xA89F6572` indicating a compressed resource ||
+|| `int32be` || `typeFlags` || usually `0x00120801` ||
+|| `int8be` || `workingBufferFractionalSize` || length of compressed data relative to length of uncompressed data, out of 256 ||
+|| `int8be` || `expansionBufferSize` || greatest number of bytes compressed data will grow while being decompressed ||
+|| `int16be` || `dcmpID` || id number of a `DCMP` or `dcmp` resource used to decompress this resource ||
+|| `byte[]` || `compressedResourceData` || compressed data ||
+
+= Empty Resource File =
+
+An empty resource file looks like:
+
+|| `0000:` || `00 00 01 00` || `00 00 01 00` || `00 00 00 00` || `00 00 00 1E` ||
+|| `0010:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `0020:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `0030:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `0040:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `0050:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `0060:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `0070:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `0080:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `0090:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `00A0:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `00B0:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `00C0:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `00D0:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `00E0:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `00F0:` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` || `00 00 00 00` ||
+|| `0100:` || `00 00 01 00` || `00 00 01 00` || `00 00 00 00` || `00 00 00 1E` ||
+|| `0110:` || `00 00 00 00` || `00 00 00 00` || `00 1C 00 1E` || `FF FF` ||
