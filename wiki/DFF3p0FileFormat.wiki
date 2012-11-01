@@ -1,0 +1,49 @@
+#summary This page describes the DFF 3.0 file format, an open file format for structured binary data.
+
+= Introduction =
+
+This page describes the DFF 3.0 file format, an open file format for structured binary data.
+
+= DFF 3.0 File Format =
+
+The DFF 3.0 file format is endian-agnostic: the endianness of all fields is determined by the endianness of the magic number at the beginning of the file.
+
+A DFF 3.0 file starts with a magic number and an array of resource type records.
+
+|| *Type* || *Description* || *Notes* ||
+|| `int32` || `magic` || the magic number `0x25444633`; the four-character constant (fcc) `%DF3` ||
+|| `int32` || `typeCount` || the number of resource types ||
+|| `type[]` || `types` || an array of resource type records ||
+|| `    int64` || `    type` || the resource type; an eight-character constant (ecc) ||
+|| `    int32` || `    resourceCount` || the number of resources of this type ||
+|| `    int32` || `    resourceTableOffset` || offset from start of file to start of resource table ||
+
+For each resource type, a _resource table_ follows that consists of an array of resource records.
+
+|| *Type* || *Description* || *Notes* ||
+|| `resource[]` || `resourceTable` || an array of resource records ||
+|| `    int32` || `    id` || the resource id ||
+|| `    int16` || `    dataType` || an application-specific value ||
+|| `    int16` || `    attributes` || Bit 0 (`0x0001`; readonly) indicates the resource is read-only. Bit 1 (`0x0002`; system) indicates the resource is used by the operating system. Bit 2 (`0x0004`; preload) indicates the resource should be loaded immediately. Bit 3 (`0x0008`; purgeable) indicates the resource may be paged out of memory. Bit 4 (`0x0010`; fromfile) indicates the resource represents a file. Bit 5 (`0x0020`; fromrsrc) indicates the resource represents a resource from another format. Bit 6 (`0x0040`; invisible) indicates the resource should not appear in a UI. Bit 7 (`0x0080`; disabled) indicates the resource should not be used for some meaning of "used." Bit 8 (`0x0100`; protected) is application-specific. Bit 9 (`0x0200`; fixed) indicates the resource should not be moved in memory. Bit 10 (`0x0400`; multilingual) indicates the resource contains several localized versions of the same data. Bit 11 (`0x0800`; compressed) indicates the resource data is compressed. Other bits are application-specific. ||
+|| `    int32` || `    nameOffset` || offset from start of file to start of resource name ||
+|| `    int48` || `    dataOffset` || offset from start of file to start of resource data ||
+|| `    int48` || `    size` || length of resource data ||
+
+Following the resource tables is the _name table_ which consists of an array of Pascal strings encoded in UTF-8. No word alignment is used.
+
+|| *Type* || *Description* || *Notes* ||
+|| `name[]` || `names` || an array of resource names ||
+|| `    int8` || `    length` || length of resource name ||
+|| `    byte[]` || `    name` || resource name in UTF-8 encoding ||
+
+Finally, the file ends with the data of each individual resource. No word alignment is used.
+
+= Empty DFF 3.0 File =
+
+An empty DFF 3.0 file consists of the magic number and a type count of zero.
+
+|| `0000:` || `25 44 46 33` || `00 00 00 00` ||
+
+Or the little-endian version:
+
+|| `0000:` || `33 46 44 25` || `00 00 00 00` ||
