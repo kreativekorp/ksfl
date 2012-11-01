@@ -55,12 +55,30 @@ For each resource type in the type list, a _resource list_ follows that consists
 || `    int24be` || `    dataOffset` || offset from start of resource data section to resource data ||
 || `    int32be` || `    resourcePtr` || used by the Resource Manager for internal bookkeeping; should be zero ||
 
+The use of a 24-bit unsigned integer for the data offset imposes a 16MB restriction on the size of the resource file.
+
 Finally, at the end of the file comes the _name list_ which consists of an array of Pascal strings encoded in [http://www.kreativekorp.com/charset/encoding.php?file=macroman.kte MacRoman]. No word alignment is used.
 
 || *Type* || *Description* || *Notes* ||
 || `name[]` || `names` || an array of resource names ||
 || `    int8be` || `    length` || length of resource name ||
 || `    byte[]` || `    name` || resource name in [http://www.kreativekorp.com/charset/encoding.php?file=macroman.kte MacRoman] encoding ||
+
+= Owned Resources =
+
+If the resource id is in the range -16384 to -1 (`0xC000` to `0xFFFF`), the resource is considered "owned" by another resource. The most significant five bits (bitmask `0xF800`) indicate the resource type of the owner, the middle six bits (bitmask `0x07E0`) indicate the resource id of the owner, and the least significant five bits (bitmask `0x001F`) indicate the "sub-id" of the owned resource.
+
+The Mac OS Resource Manager used this scheme to ensure that certain types of programs, themselves stored in resources, could find the other resources they needed even if the resources had to be renumbered to avoid conflicts. Utilities such as Font/DA Mover that were used to install and remove these programs used this scheme to ensure that all associated resources were installed or removed as well, and renumber the resources if necessary to avoid conflicts.
+
+|| *MS5B of ID* || *Owner Type* || *Notes* ||
+|| `0xC000` || `DRVR` || a driver or desk accessory ||
+|| `0xC800` || `WDEF` || a window definition: code to draw windows ||
+|| `0xD000` || `MDEF` || a menu definition: code to draw menus ||
+|| `0xD800` || `CDEF` || a control definition: code to draw UI widgets ||
+|| `0xE000` || `PDEF` || a printer driver ||
+|| `0xE800` || `PACK` || a package: a utility code library used by the Mac OS ||
+|| `0xF000` || `cdev` || a control panel; owner id is set to 1 ||
+|| `0xF800` || reserved || reserved for future use ||
 
 = Compressed Resources =
 
