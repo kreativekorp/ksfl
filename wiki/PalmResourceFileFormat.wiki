@@ -9,7 +9,7 @@ This page describes the format of PRC (Palm resource) files used by the Palm OS.
 A PRC (Palm resource) file is very simple, starting immediately with the PRC header.
 
 || *Type* || *Description* || *Notes* ||
-|| `byte[32]` || `name` || the name of the application, padded with nulls ||
+|| `byte[32]` || `name` || the name of the application, in [http://www.kreativekorp.com/charset/encoding.php?file=macroman.kte MacRoman] encoding, padded with nulls ||
 || `int16be` || `attributes` || Bit 0 (`0x0001`) is set, indicating this is a PRC file. Bit 1 (`0x0002`) indicates that the file is read-only. Bit 2 (`0x0004`) indicates that the `appInfo` field is dirty. Bit 3 (`0x0008`) indicates that the file needs to be backed up. Bit 4 (`0x0010`) indicates that it is OK to install a newer version of this file over an older one. Bit 5 (`0x0020`) indicates that the device should be reset after installing this application. Bit 6 (`0x0040`) indicates that the file cannot be copied to another device. Bit 7 (`0x0080`) is clear, indicating this is not a file stream database. Bit 8 (`0x0100`) indicates this file is hidden. Bit 9 (`0x0200`) is set, indicating this file is launchable. Bit 15 (`0x8000`) indicates the file is open and should be cleared. Other bits are reserved and should be cleared. ||
 || `int16be` || `version` || usually 1 ||
 || `int32be` || `creationDate` || seconds since midnight, January 1, 1904 ||
