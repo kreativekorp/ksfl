@@ -1,7 +1,5 @@
-ksfl
+KSFL
 ====
-
-KSFL - Kreative Structured Format Library
 
 KSFL is a library and command-line tool for reading and writing various structured binary file formats, including:
 
