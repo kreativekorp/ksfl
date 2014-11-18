@@ -129,15 +129,19 @@ public class SoundResource extends MacResource {
 	private static final short COMPID_ACE_8TO3   = 2;
 	private static final short COMPID_MACE_3TO1  = 3;
 	private static final short COMPID_MACE_6TO1  = 4;
+	
 	private static final short COMPID_USE_FORMAT = -1;
 	
 	private static final int FORMAT_NONE      = 0x4E4F4E45; // KSFLUtilities.fcc("NONE");
+	private static final int FORMAT_IMA4      = 0x696D6134; // KSFLUtilities.fcc("ima4");
+	
 	private static final int FORMAT_ACE_2TO1  = 0x41434532; // KSFLUtilities.fcc("ACE2");
 	private static final int FORMAT_ACE_8TO3  = 0x41434538; // KSFLUtilities.fcc("ACE8");
 	private static final int FORMAT_MACE_3TO1 = 0x4D414333; // KSFLUtilities.fcc("MAC3");
 	private static final int FORMAT_MACE_6TO1 = 0x4D414336; // KSFLUtilities.fcc("MAC6");
-	
+	//                                                      0  1    2   3   4   5   6  7    8   9   a  b   c   d   e
 	private static final byte[] COMPNAME_NONE      = {0x0E,'n','o','t',' ','c','o','m','p','r','e','s','s','e','d', 0 };
+	private static final byte[] COMPNAME_IMA4      = {0x05,'i','m','a','4', 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 };
 	private static final byte[] COMPNAME_ACE_2TO1  = {0x0A,'A','C','E',' ','2','-','t','o','-','1', 0 , 0 , 0 , 0 , 0 };
 	private static final byte[] COMPNAME_ACE_8TO3  = {0x0A,'A','C','E',' ','8','-','t','o','-','3', 0 , 0 , 0 , 0 , 0 };
 	private static final byte[] COMPNAME_MACE_3TO1 = {0x0B,'M','A','C','E',' ','3','-','t','o','-','1', 0 , 0 , 0 , 0 };
@@ -409,6 +413,8 @@ public class SoundResource extends MacResource {
 			case COMPID_USE_FORMAT:
 				switch (format) {
 				case FORMAT_NONE: return new String(COMPNAME_NONE).trim();
+				case FORMAT_IMA4: return new String(COMPNAME_IMA4).trim();
+				case 0x59444B4A: return new String(COMPNAME_IMA4).trim(); // equals YDKJ.
 				case FORMAT_ACE_2TO1: return new String(COMPNAME_ACE_2TO1).trim();
 				case FORMAT_ACE_8TO3: return new String(COMPNAME_ACE_8TO3).trim();
 				case FORMAT_MACE_3TO1: return new String(COMPNAME_MACE_3TO1).trim();
@@ -450,7 +456,12 @@ public class SoundResource extends MacResource {
 			short compressionID = KSFLUtilities.getShort(data, o+56);
 			short sampleSize = KSFLUtilities.getShort(data, o+62);
 			int sampleBytes = (sampleSize + 7) / 8;
-			byte[] newdata = KSFLUtilities.copy(data, o+22, numBytes * numFrames * sampleBytes);
+			int clength = data.length -84;//strip header and junk
+			if (format != FORMAT_IMA4  && format != 0x59444B4A)
+			{// we can calculate a different way
+				clength = numBytes * numFrames * sampleBytes;
+			}
+			byte[] newdata = KSFLUtilities.copy(data, o+22, clength);
 			switch (compressionID) {
 			case COMPID_NONE:
 				// nothin' doin'
@@ -464,6 +475,8 @@ public class SoundResource extends MacResource {
 			case COMPID_USE_FORMAT:
 				switch (format) {
 				case FORMAT_NONE:
+				case FORMAT_IMA4:
+				case 0x59444B4A:
 					// nothin' doin'
 					break;
 				case FORMAT_MACE_3TO1:
@@ -491,7 +504,14 @@ public class SoundResource extends MacResource {
 				// FORMAT chunk, 24 bytes total
 				out2.writeInt(FMT );
 				out2.writeInt(0x10000000); // length of following data, little-endian
-				out2.writeShort(0x0100); // codec; 1 = PCM
+				if (format == FORMAT_IMA4)
+				{
+					out2.writeShort(0x1100); // codec; 11 = IMA ADPCM
+				}
+				else
+				{
+					out2.writeShort(0x0100); // codec; 01 = PCM
+				}
 				out2.writeShort(Short.reverseBytes((short)numBytes)); // number of channels
 				out2.writeInt(Integer.reverseBytes(sampleRate >>> 16)); // sample rate in Hz
 				out2.writeInt(Integer.reverseBytes(numBytes * (sampleRate >>> 16) * sampleBytes)); // bytes per second
@@ -636,23 +656,30 @@ public class SoundResource extends MacResource {
 			if (!(cmd == NULLCMD || cmd == SOUNDCMD || cmd == BUFFERCMD)) return null;
 		}
 		int o = getSoundDataOffset();
-		int numBytes = KSFLUtilities.getInt(data, o+4);
-		int padding = 0; while (((numBytes+padding)&1)!=0) padding++;
+		int encoding = data[o+20];
+		int baseFrequency = data[o+21];
 		int sampleRate = KSFLUtilities.getInt(data, o+8);
 		int loopStart = KSFLUtilities.getInt(data, o+12);
 		int loopEnd = KSFLUtilities.getInt(data, o+16);
-		int encoding = data[o+20];
-		int baseFrequency = data[o+21];
+		int numBytes = KSFLUtilities.getInt(data, o+4);
+		int padding = 0; while (((numBytes+padding)&1)!=0) padding++;
 		if (encoding == -2) {
 			// compressed
+			numBytes = KSFLUtilities.getInt(data, o+4);//actually channels in this case
 			int numFrames = KSFLUtilities.getInt(data, o+22);
 			short aiffSampleRateExponent = KSFLUtilities.getShort(data, o+26);
 			long aiffSampleRateMantissa = KSFLUtilities.getLong(data, o+28);
 			int format = KSFLUtilities.getInt(data, o+40);
 			short compressionID = KSFLUtilities.getShort(data, o+56);
 			short sampleSize = KSFLUtilities.getShort(data, o+62);
-			int sampleBytes = (sampleSize + 7) / 8;
-			int flength = numBytes * numFrames * sampleBytes;
+			
+			if (format != FORMAT_IMA4 && format != 0x59444B4A)
+			{
+				int sampleBytes = (sampleSize + 7) / 8;
+				int flength = numBytes * numFrames * sampleBytes;
+				int fpadding = 0; while (((flength+fpadding)&1)!=0) fpadding++;
+			}
+			int flength = data.length -84;//-140; //strip header and junk
 			int fpadding = 0; while (((flength+fpadding)&1)!=0) fpadding++;
 			try {
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -681,6 +708,8 @@ public class SoundResource extends MacResource {
 				case COMPID_MACE_6TO1: out2.writeInt(FORMAT_MACE_6TO1); out2.write(COMPNAME_MACE_6TO1); break;
 				case COMPID_USE_FORMAT:
 					switch (format) {
+					case FORMAT_IMA4: out2.writeInt(FORMAT_IMA4); out2.write(COMPNAME_IMA4); break;
+					case 0x59444B4A: out2.writeInt(FORMAT_IMA4); out2.write(COMPNAME_IMA4); break;
 					case FORMAT_NONE: out2.writeInt(FORMAT_NONE); out2.write(COMPNAME_NONE); break;
 					case FORMAT_ACE_2TO1: out2.writeInt(FORMAT_ACE_2TO1); out2.write(COMPNAME_ACE_2TO1); break;
 					case FORMAT_ACE_8TO3: out2.writeInt(FORMAT_ACE_8TO3); out2.write(COMPNAME_ACE_8TO3); break;
