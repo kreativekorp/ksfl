@@ -672,15 +672,15 @@ public class SoundResource extends MacResource {
 			int format = KSFLUtilities.getInt(data, o+40);
 			short compressionID = KSFLUtilities.getShort(data, o+56);
 			short sampleSize = KSFLUtilities.getShort(data, o+62);
+			int flength = data.length -84;//-140; //strip header and junk
+			int fpadding = 0; while (((flength+fpadding)&1)!=0) fpadding++;
 			
 			if (format != FORMAT_IMA4 && format != 0x59444B4A)
 			{
 				int sampleBytes = (sampleSize + 7) / 8;
-				int flength = numBytes * numFrames * sampleBytes;
-				int fpadding = 0; while (((flength+fpadding)&1)!=0) fpadding++;
+				flength = numBytes * numFrames * sampleBytes;
+				fpadding = 0; while (((flength+fpadding)&1)!=0) fpadding++;
 			}
-			int flength = data.length -84;//-140; //strip header and junk
-			int fpadding = 0; while (((flength+fpadding)&1)!=0) fpadding++;
 			try {
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				DataOutputStream out2 = new DataOutputStream(out);
