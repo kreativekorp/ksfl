@@ -151,7 +151,7 @@ public class ConvertStamps {
 		if (name.contains(".")) name = name.substring(0, name.lastIndexOf(".")).trim();
 		name = name.replaceAll("([a-z])([0-9])", "$1 $2");
 		out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-		out.println("<!DOCTYPE sprite-sheet PUBLIC \"-//Kreative//DTD SpriteInfo 1.0//EN\" \"spnx.dtd\">");
+		out.println("<!DOCTYPE sprite-sheet PUBLIC \"-//Kreative//DTD SpriteInfo 1.0//EN\" \"http://www.kreativekorp.com/dtd/spnx.dtd\">");
 		out.println("<sprite-sheet name=\"" + xmls(name) + "\"");
 		out.println("              intent=\"" + (anm ? "animated" : "rubber") + "-stamps\">");
 		out.println();
