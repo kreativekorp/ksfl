@@ -484,6 +484,7 @@ public class KSFLCLI {
 									case MEDIUM: ch.getHeader().put(FieldType.CHARACTER_TYPE, KSFLUtilities.fcc(oarg.get(j++))); break;
 									case SHORT: ch.getHeader().put(FieldType.CHARACTER_TYPE, KSFLUtilities.tcc(oarg.get(j++))); break;
 									case BYTE: ch.getHeader().put(FieldType.CHARACTER_TYPE, KSFLUtilities.occ(oarg.get(j++))); break;
+									default: break;
 									}
 								} else {
 									switch (spec.chunkHeaderSpec().getField(FieldType.CHARACTER_TYPE).size()) {
@@ -491,6 +492,7 @@ public class KSFLCLI {
 									case MEDIUM: ch.getHeader().put(FieldType.CHARACTER_TYPE, KSFLConstants.DATA); break;
 									case SHORT: ch.getHeader().put(FieldType.CHARACTER_TYPE, (short)0x3F3F); break;
 									case BYTE: ch.getHeader().put(FieldType.CHARACTER_TYPE, (byte)0x3F); break;
+									default: break;
 									}
 								}
 							}
@@ -502,6 +504,7 @@ public class KSFLCLI {
 										case MEDIUM: ch.getHeader().put(FieldType.INTEGER_TYPE, Integer.parseInt(oarg.get(j))); j++; break;
 										case SHORT: ch.getHeader().put(FieldType.INTEGER_TYPE, Short.parseShort(oarg.get(j))); j++; break;
 										case BYTE: ch.getHeader().put(FieldType.INTEGER_TYPE, Byte.parseByte(oarg.get(j))); j++; break;
+										default: break;
 										}
 									} catch (NumberFormatException nfe) {
 										switch (spec.chunkHeaderSpec().getField(FieldType.INTEGER_TYPE).size()) {
@@ -509,6 +512,7 @@ public class KSFLCLI {
 										case MEDIUM: ch.getHeader().put(FieldType.INTEGER_TYPE, 0); break;
 										case SHORT: ch.getHeader().put(FieldType.INTEGER_TYPE, (short)0); break;
 										case BYTE: ch.getHeader().put(FieldType.INTEGER_TYPE, (byte)0); break;
+										default: break;
 										}
 									}
 								} else {
@@ -517,6 +521,7 @@ public class KSFLCLI {
 									case MEDIUM: ch.getHeader().put(FieldType.INTEGER_TYPE, 0); break;
 									case SHORT: ch.getHeader().put(FieldType.INTEGER_TYPE, (short)0); break;
 									case BYTE: ch.getHeader().put(FieldType.INTEGER_TYPE, (byte)0); break;
+									default: break;
 									}
 								}
 							}
@@ -528,6 +533,7 @@ public class KSFLCLI {
 										case MEDIUM: ch.getHeader().put(FieldType.ID_NUMBER, Integer.parseInt(oarg.get(j))); j++; break;
 										case SHORT: ch.getHeader().put(FieldType.ID_NUMBER, Short.parseShort(oarg.get(j))); j++; break;
 										case BYTE: ch.getHeader().put(FieldType.ID_NUMBER, Byte.parseByte(oarg.get(j))); j++; break;
+										default: break;
 										}
 									} catch (NumberFormatException nfe) {
 										Number id = cf.getNextAvailableID(ch.getHeader().get(FieldType.CHARACTER_TYPE), ch.getHeader().get(FieldType.INTEGER_TYPE));
@@ -707,6 +713,7 @@ public class KSFLCLI {
 										case MEDIUM: h.put(FieldType.CHARACTER_TYPE, KSFLUtilities.fcc(oarg.get(j+1))); localModified = true; break;
 										case SHORT: h.put(FieldType.CHARACTER_TYPE, KSFLUtilities.tcc(oarg.get(j+1))); localModified = true; break;
 										case BYTE: h.put(FieldType.CHARACTER_TYPE, KSFLUtilities.occ(oarg.get(j+1))); localModified = true; break;
+										default: break;
 										}
 									}
 								}
@@ -718,6 +725,7 @@ public class KSFLCLI {
 											case MEDIUM: h.put(FieldType.INTEGER_TYPE, Integer.parseInt(oarg.get(j+1))); localModified = true; break;
 											case SHORT: h.put(FieldType.INTEGER_TYPE, Short.parseShort(oarg.get(j+1))); localModified = true; break;
 											case BYTE: h.put(FieldType.INTEGER_TYPE, Byte.parseByte(oarg.get(j+1))); localModified = true; break;
+											default: break;
 											}
 										} catch (NumberFormatException nfe) {
 											System.err.println("Error: Invalid type number "+oarg.get(j+1)+" skipped.");
@@ -732,6 +740,7 @@ public class KSFLCLI {
 											case MEDIUM: h.put(FieldType.ID_NUMBER, Integer.parseInt(oarg.get(j+1))); localModified = true; break;
 											case SHORT: h.put(FieldType.ID_NUMBER, Short.parseShort(oarg.get(j+1))); localModified = true; break;
 											case BYTE: h.put(FieldType.ID_NUMBER, Byte.parseByte(oarg.get(j+1))); localModified = true; break;
+											default: break;
 											}
 										} catch (NumberFormatException nfe) {
 											System.err.println("Error: Invalid ID number "+oarg.get(j+1)+" skipped.");
@@ -746,6 +755,7 @@ public class KSFLCLI {
 											case MEDIUM: h.put(FieldType.CHECKSUM, Integer.parseInt(oarg.get(j+1))); localModified = true; break;
 											case SHORT: h.put(FieldType.CHECKSUM, Short.parseShort(oarg.get(j+1))); localModified = true; break;
 											case BYTE: h.put(FieldType.CHECKSUM, Byte.parseByte(oarg.get(j+1))); localModified = true; break;
+											default: break;
 											}
 										} catch (NumberFormatException nfe) {
 											System.err.println("Error: Invalid checksum "+oarg.get(j+1)+" skipped.");
@@ -882,6 +892,7 @@ public class KSFLCLI {
 			case MEDIUM: ctype = KSFLUtilities.fcc(oarg.get(j++)); break;
 			case SHORT: ctype = KSFLUtilities.tcc(oarg.get(j++)); break;
 			case BYTE: ctype = KSFLUtilities.occ(oarg.get(j++)); break;
+			default: break;
 			}
 		}
 		Number itype = null;
@@ -892,6 +903,7 @@ public class KSFLCLI {
 				case MEDIUM: itype = Integer.parseInt(oarg.get(j)); j++; break;
 				case SHORT: itype = Short.parseShort(oarg.get(j)); j++; break;
 				case BYTE: itype = Byte.parseByte(oarg.get(j)); j++; break;
+				default: break;
 				}
 			} catch (NumberFormatException nfe) {}
 		}
@@ -914,6 +926,7 @@ public class KSFLCLI {
 			case MEDIUM: ctype = KSFLUtilities.fcc(oarg.get(j++)); break;
 			case SHORT: ctype = KSFLUtilities.tcc(oarg.get(j++)); break;
 			case BYTE: ctype = KSFLUtilities.occ(oarg.get(j++)); break;
+			default: break;
 			}
 		}
 		Number itype = null;
@@ -924,6 +937,7 @@ public class KSFLCLI {
 				case MEDIUM: itype = Integer.parseInt(oarg.get(j)); j++; break;
 				case SHORT: itype = Short.parseShort(oarg.get(j)); j++; break;
 				case BYTE: itype = Byte.parseByte(oarg.get(j)); j++; break;
+				default: break;
 				}
 			} catch (NumberFormatException nfe) {}
 		}
@@ -936,6 +950,7 @@ public class KSFLCLI {
 					case MEDIUM: id = Integer.parseInt(oarg.get(j)); j++; break;
 					case SHORT: id = Short.parseShort(oarg.get(j)); j++; break;
 					case BYTE: id = Byte.parseByte(oarg.get(j)); j++; break;
+					default: break;
 					}
 				} else {
 					id = Integer.parseInt(oarg.get(j)); j++;

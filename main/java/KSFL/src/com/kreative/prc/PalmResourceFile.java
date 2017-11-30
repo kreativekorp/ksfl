@@ -348,7 +348,7 @@ public class PalmResourceFile extends PalmResourceProvider {
 			ArrayList<Integer> a = new ArrayList<Integer>();
 			raf.seek(0x4C);
 			int n = raf.readShort();
-			for (int i=0, h=0x4E; i<n; i++, h+=10) {
+			for (int i=0; i<n; i++) {
 				int t = raf.readInt();
 				raf.skipBytes(6);
 				if (!a.contains(t)) {
@@ -366,7 +366,7 @@ public class PalmResourceFile extends PalmResourceProvider {
 			ArrayList<Integer> a = new ArrayList<Integer>();
 			raf.seek(0x4C);
 			int n = raf.readShort();
-			for (int i=0, h=0x4E; i<n; i++, h+=10) {
+			for (int i=0; i<n; i++) {
 				int t = raf.readInt();
 				raf.skipBytes(6);
 				if (!a.contains(t)) {
@@ -386,7 +386,7 @@ public class PalmResourceFile extends PalmResourceProvider {
 		try {
 			raf.seek(0x4C);
 			int n = raf.readShort();
-			for (int i=0, h=0x4E; i<n; i++, h+=10) {
+			for (int i=0; i<n; i++) {
 				int t = raf.readInt();
 				raf.skipBytes(6);
 				if (!a.contains(t)) a.add(t);
@@ -404,7 +404,7 @@ public class PalmResourceFile extends PalmResourceProvider {
 		try {
 			raf.seek(0x4C);
 			int n = raf.readShort();
-			for (int i=0, h=0x4E; i<n; i++, h+=10) {
+			for (int i=0; i<n; i++) {
 				int t = raf.readInt();
 				raf.skipBytes(6);
 				if (t == type) cnt++;
@@ -418,7 +418,7 @@ public class PalmResourceFile extends PalmResourceProvider {
 			int idx = 0;
 			raf.seek(0x4C);
 			int n = raf.readShort();
-			for (int i=0, h=0x4E; i<n; i++, h+=10) {
+			for (int i=0; i<n; i++) {
 				int t = raf.readInt();
 				short d = raf.readShort();
 				raf.skipBytes(4);
@@ -436,7 +436,7 @@ public class PalmResourceFile extends PalmResourceProvider {
 		try {
 			raf.seek(0x4C);
 			int n = raf.readShort();
-			for (int i=0, h=0x4E; i<n; i++, h+=10) {
+			for (int i=0; i<n; i++) {
 				int t = raf.readInt();
 				short d = raf.readShort();
 				raf.skipBytes(4);
@@ -455,7 +455,7 @@ public class PalmResourceFile extends PalmResourceProvider {
 			ArrayList<Short> a = new ArrayList<Short>();
 			raf.seek(0x4C);
 			int n = raf.readShort();
-			for (int i=0, h=0x4E; i<n; i++, h+=10) {
+			for (int i=0; i<n; i++) {
 				int t = raf.readInt();
 				short d = raf.readShort();
 				raf.skipBytes(4);

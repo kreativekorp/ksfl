@@ -106,6 +106,7 @@ public enum FieldSize {
 		case SHORT: out.writeShort(n.shortValue()); break;
 		case MEDIUM: out.writeInt(n.intValue()); break;
 		case LONG: out.writeLong(n.longValue()); break;
+		default: break;
 		}
 	}
 	
@@ -125,6 +126,7 @@ public enum FieldSize {
 		case SHORT: out.writeShort(Short.reverseBytes(n.shortValue())); break;
 		case MEDIUM: out.writeInt(Integer.reverseBytes(n.intValue())); break;
 		case LONG: out.writeLong(Long.reverseBytes(n.longValue())); break;
+		default: break;
 		}
 	}
 }

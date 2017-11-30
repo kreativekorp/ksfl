@@ -185,6 +185,7 @@ public class PictureResource extends MacResource {
 				if (inst instanceof PICTInstruction.OpEndPic) break;
 			}
 			g.setTransform(tx);
+			in.close();
 			return true;
 		} catch (IOException ioe) {
 			return false;
@@ -211,6 +212,7 @@ public class PictureResource extends MacResource {
 				if (inst instanceof PICTInstruction.OpEndPic) break;
 			}
 			bg.dispose();
+			in.close();
 			return bi;
 		} catch (IOException ioe) {
 			return null;

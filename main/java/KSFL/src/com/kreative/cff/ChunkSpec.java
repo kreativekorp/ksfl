@@ -148,6 +148,7 @@ public class ChunkSpec extends Vector<FieldSpec> {
 			case MEDIUM: h.put(fs.type(), 0); break;
 			case SHORT: h.put(fs.type(), (short)0); break;
 			case BYTE: h.put(fs.type(), (byte)0); break;
+			default: break;
 			}
 		}
 		return h;
