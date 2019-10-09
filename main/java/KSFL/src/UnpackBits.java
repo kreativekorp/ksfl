@@ -26,6 +26,7 @@ public class UnpackBits {
 		} else {
 			unpackBits(System.in, System.out);
 		}
+		System.out.flush();
 	}
 	
 	private static int parseInt(String s) {
