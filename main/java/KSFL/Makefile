@@ -48,6 +48,7 @@ osxclean:
 
 KSFL.jar: osxclean
 	jar cmf dep/MANIFEST.MF KSFL.jar -C bin com/kreative
+	chmod +x KSFL.jar
 
 KSFL-src.tgz: osxclean
 	tar -czf KSFL-src.tgz src/com/kreative LICENSE
