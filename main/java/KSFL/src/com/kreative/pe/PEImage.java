@@ -85,7 +85,7 @@ public class PEImage implements Cloneable, Serializable {
 	public int symbolTablePtr;
 	public int numSymbols;
 	public short optHeaderSize;
-	public static final short CHARACTERISTICS_RELOCS_STRIPPED = 0x0001; // Image only, Windows CE, and Microsoft Windows NT¨ and later. This indicates that the file does not contain base relocations and must therefore be loaded at its preferred base address. If the base address is not available, the loader reports an error. The default behavior of the linker is to strip base relocations from executable (EXE) files.
+	public static final short CHARACTERISTICS_RELOCS_STRIPPED = 0x0001; // Image only, Windows CE, and Microsoft Windows NT and later. This indicates that the file does not contain base relocations and must therefore be loaded at its preferred base address. If the base address is not available, the loader reports an error. The default behavior of the linker is to strip base relocations from executable (EXE) files.
 	public static final short CHARACTERISTICS_EXECUTABLE_IMAGE = 0x0002; // Image only. This indicates that the image file is valid and can be run. If this flag is not set, it indicates a linker error.
 	public static final short CHARACTERISTICS_LINE_NUMS_STRIPPED = 0x0004; // COFF line numbers have been removed. This flag is deprecated and should be zero.
 	public static final short CHARACTERISTICS_LOCAL_SYMS_STRIPPED = 0x0008; // COFF symbol table entries for local symbols have been removed. This flag is deprecated and should be zero.

@@ -1,11 +1,12 @@
 INSTJARDIR = /usr/lib
 INSTBINDIR = /usr/bin
-SRCFILES = src/*.java src/com/kreative/*/*.java src/com/kreative/*/*/*.java
-PACKAGES = com.kreative.cff com.kreative.dff com.kreative.ksfl com.kreative.pe com.kreative.prc com.kreative.rsrc com.kreative.rsrc.misc com.kreative.rsrc.pict
+SRCFILES := $(shell find src -name \*.java)
+RESFILES := $(shell find src -type f \! -name .\* \! -name \*.java | sed s/^src\\///)
+PACKAGES := $(shell find src -name \*.java | sed -E s/^src\\/\|\\/[^\\/]+$$//g | grep -v \\.java$$ | sort | uniq | tr / .)
 
-all: clean bin doc osxclean KSFL.jar KSFL-src.tgz
+all: clean bin doc KSFL.jar KSFL-src.tgz
 
-eclipseall: eclipseclean osxclean KSFL.jar KSFL-src.tgz
+eclipseall: eclipseclean KSFL.jar KSFL-src.tgz
 
 clean:
 	rm -rf bin
@@ -17,41 +18,28 @@ eclipseclean:
 	rm -rf KSFL*.jar
 	rm -rf KSFL*.tgz
 
-bin:
+bin: src
 	mkdir -p bin
-	javac -target 1.5 -sourcepath src $(SRCFILES) -d bin
+ifeq ($(origin JAVACFLAGS), undefined)
+	$(eval JAVACFLAGS = $(shell dep/minJavaVerOpts))
+endif
+	javac $(JAVACFLAGS) -sourcepath src $(SRCFILES) -d bin
+	$(foreach res,$(RESFILES),cp src/$(res) bin/$(res);)
 
-doc:
+doc: src
 	mkdir -p doc
-	javadoc -sourcepath src $(PACKAGES) -d doc
+	javadoc $(JAVADOCFLAGS) -sourcepath src $(PACKAGES) -d doc
 
-osxclean:
+KSFL.jar: bin
 	export COPYFILE_DISABLE=true
-	rm -f src/.DS_Store
-	rm -f src/*/.DS_Store
-	rm -f src/*/*/.DS_Store
-	rm -f src/*/*/*/.DS_Store
-	rm -f src/*/*/*/*/.DS_Store
-	rm -f src/*/*/*/*/*/.DS_Store
-	rm -f src/*/*/*/*/*/*/.DS_Store
-	rm -f src/*/*/*/*/*/*/*/.DS_Store
-	rm -f src/*/*/*/*/*/*/*/*/.DS_Store
-	rm -f bin/.DS_Store
-	rm -f bin/*/.DS_Store
-	rm -f bin/*/*/.DS_Store
-	rm -f bin/*/*/*/.DS_Store
-	rm -f bin/*/*/*/*/.DS_Store
-	rm -f bin/*/*/*/*/*/.DS_Store
-	rm -f bin/*/*/*/*/*/*/.DS_Store
-	rm -f bin/*/*/*/*/*/*/*/.DS_Store
-	rm -f bin/*/*/*/*/*/*/*/*/.DS_Store
-
-KSFL.jar: osxclean
+	find bin -name .DS_Store -delete
 	jar cmf dep/MANIFEST.MF KSFL.jar -C bin com/kreative
 	chmod +x KSFL.jar
 
-KSFL-src.tgz: osxclean
-	tar -czf KSFL-src.tgz src/com/kreative LICENSE
+KSFL-src.tgz: src
+	export COPYFILE_DISABLE=true
+	find src -name .DS_Store -delete
+	tar -czf KSFL-src.tgz LICENSE src/com/kreative
 
 localuninstall:
 	rm ksfl
@@ -71,4 +59,4 @@ install: KSFL.jar
 	echo 'java -Xmx1024M -jar "$(INSTJARDIR)/KSFL.jar" "$$@"' >> $(INSTBINDIR)/ksfl
 	chmod +x $(INSTBINDIR)/ksfl
 
-.PHONY: all eclipseall clean eclipseclean osxclean localuninstall localinstall uninstall install
+.PHONY: all eclipseall clean eclipseclean localuninstall localinstall uninstall install

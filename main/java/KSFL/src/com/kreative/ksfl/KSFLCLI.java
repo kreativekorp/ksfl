@@ -248,7 +248,7 @@ public class KSFLCLI {
 	}
 	
 	private static void printVersion() {
-		System.out.println("KSFL - Kreative Structured Format Library - version 1.0");
+		System.out.println("KSFL - Kreative Structured Format Library - version 1.0.1");
 	}
 	
 	private static void printUsage() {

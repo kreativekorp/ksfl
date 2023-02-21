@@ -48,7 +48,7 @@ public class PESection implements Cloneable, Serializable {
 	public static final int CHARACTERISTICS_OTHER = 0x00000100; // Reserved for future use.
 	public static final int CHARACTERISTICS_INFO = 0x00000200; // The section contains comments or other information. The .drectve section has this type. This is valid for object files only.
 	public static final int CHARACTERISTICS_REMOVE = 0x00000800; // The section will not become part of the image. This is valid only for object files.
-	public static final int CHARACTERISTICS_COMDAT = 0x00001000; // The section contains COMDAT data. For more information, see section 5.5.6, ÒCOMDAT Sections (Object Only).Ó This is valid only for object files.
+	public static final int CHARACTERISTICS_COMDAT = 0x00001000; // The section contains COMDAT data. For more information, see section 5.5.6, COMDAT Sections (Object Only). This is valid only for object files.
 	public static final int CHARACTERISTICS_GPREL = 0x00008000; // The section contains data referenced through the global pointer (GP).
 	public static final int CHARACTERISTICS_PURGEABLE = 0x00020000; // Reserved for future use.
 	public static final int CHARACTERISTICS_16BIT = 0x00020000; // Reserved for future use.
